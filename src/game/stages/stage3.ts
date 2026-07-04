@@ -1,17 +1,19 @@
 // ============================================================================
 // stage3.ts  —  Gus's diversifying question, then the spread board at the Bank.
 // Spreading money across more places keeps you secure when the surprise expense
-// hits. The choice sets all three meters; the all-in plan, with nowhere safe to
-// turn, actually loses Security. Finishing here opens the Money Report.
+// hits. The choice sets all three meters AND how much the surprise costs: with
+// everything in one place you must sell at a bad time and lose more. The board
+// shows the student's REAL carried total (injected), not a fixed $200, so the
+// numbers match the running money. Finishing here opens the Money Report.
 // ============================================================================
 
 import { Interactable, PanelUI } from "@iwsdk/core";
-import { choices, getPhase, updateScore } from "../state";
+import { changeMoney, choices, ECON, finishStageRecord, getMoney, getPhase, updateScore } from "../state";
 import { setupGusQuestion } from "./gus";
-import { sfxClick, sfxCoin, sfxStage } from "../../sfx";
+import { sfxClick, sfxCoin, sfxDown, sfxStage } from "../../sfx";
 import { STATIONS } from "../../environment";
 import type { Ctx } from "../context";
-import type { PanelDoc, Stage3Plan } from "../types";
+import type { PanelDoc, PanelElement, Stage3Plan } from "../types";
 
 const STAGE3_PLANS: Record<string, Stage3Plan> = {
   one: {
@@ -19,7 +21,9 @@ const STAGE3_PLANS: Record<string, Stage3Plan> = {
     security: -3,
     growth: 3,
     smarts: 0,
-    surprise: "Ouch! All your money was in one place. To pay the $30, you had to pull from your only investment at a bad time.",
+    moneyHit: ECON.SURPRISE_EXPENSE + 15, // sell your only investment at a bad time
+    surprise:
+      "Ouch! All your money was in one place. To pay the bill, you had to pull from your only investment at a bad time and lost extra.",
     takeaway: "Keeping everything in one place is risky. Spreading it out protects you.",
   },
   two: {
@@ -27,7 +31,8 @@ const STAGE3_PLANS: Record<string, Stage3Plan> = {
     security: 8,
     growth: 8,
     smarts: 9,
-    surprise: "Not bad! With your money in two places, you covered the $30 without much trouble.",
+    moneyHit: ECON.SURPRISE_EXPENSE + 5,
+    surprise: "Not bad! With your money in two places, you covered the bill with only a little trouble.",
     takeaway: "Two places is safer than one. Even more places would protect you better.",
   },
   three: {
@@ -35,7 +40,9 @@ const STAGE3_PLANS: Record<string, Stage3Plan> = {
     security: 14,
     growth: 12,
     smarts: 14,
-    surprise: "Perfect! Your money was spread across three places, so paying the $30 was easy. One small dip did not hurt the rest.",
+    moneyHit: ECON.SURPRISE_EXPENSE, // just the bill; nothing extra
+    surprise:
+      "Perfect! Your money was spread across three places, so paying the bill was easy. One small dip did not hurt the rest.",
     takeaway: "Spreading your money out kept you safe and growing. That is diversifying!",
   },
 };
@@ -60,8 +67,40 @@ export function setupStage3(ctx: Ctx, showReport: () => void) {
   panel.object3D!.visible = false;
   panels.registerStoryPanel(panel);
 
-  const flags = { done: false, engaged: false, planChosen: false, scored: false };
+  const flags = { done: false, engaged: false, planChosen: false, scored: false, injected: false };
   let plan: Stage3Plan | null = null;
+
+  // Elements we fill with the student's REAL carried total when the board opens.
+  let s3Intro: PanelElement | null = null;
+  let s3SplitOne: PanelElement | null = null;
+  let s3SplitTwo: PanelElement | null = null;
+  let s3SplitThree: PanelElement | null = null;
+  let s3Surprise: PanelElement | null = null;
+
+  // Fill the board's dollar amounts from the money the student actually carried
+  // into this stage, so the plan cards never contradict the running total.
+  function injectAmounts() {
+    if (flags.injected) return;
+    const funds = getMoney();
+    if (funds <= 0) return; // wait until the carried money is in
+    flags.injected = true;
+    const half = Math.round(funds / 2);
+    const third = Math.round(funds / 3);
+    s3Intro?.setProperties({
+      text:
+        "You have $" +
+        funds +
+        " saved up! Spreading it across different places keeps you safe if one does not work out. How do you want to spread it?",
+    });
+    s3SplitOne?.setProperties({ text: "All $" + funds + " in one business." });
+    s3SplitTwo?.setProperties({ text: "$" + half + " in savings, $" + (funds - half) + " in a business." });
+    s3SplitThree?.setProperties({
+      text: "$" + third + " savings, $" + third + " business, $" + (funds - third * 2) + " stocks.",
+    });
+    s3Surprise?.setProperties({
+      text: "Your bike breaks and costs $" + ECON.SURPRISE_EXPENSE + " to fix. Can your money handle it?",
+    });
+  }
 
   panels.whenPanelReady(panel, function (doc: PanelDoc) {
     const beatPlan = doc.getElementById("beat-plan");
@@ -69,6 +108,12 @@ export function setupStage3(ctx: Ctx, showReport: () => void) {
     const beatOutcome = doc.getElementById("beat-outcome");
     const resultSurprise = doc.getElementById("result-surprise");
     const resultTakeaway = doc.getElementById("result-takeaway");
+
+    s3Intro = doc.getElementById("s3-intro");
+    s3SplitOne = doc.getElementById("s3-split-one");
+    s3SplitTwo = doc.getElementById("s3-split-two");
+    s3SplitThree = doc.getElementById("s3-split-three");
+    s3Surprise = doc.getElementById("s3-surprise");
 
     beatPlan?.setProperties({ display: "flex" });
     beatSurprise?.setProperties({ display: "none" });
@@ -93,7 +138,10 @@ export function setupStage3(ctx: Ctx, showReport: () => void) {
       onClick: function () {
         if (!plan || flags.scored) return; // a second tap must not score twice
         flags.scored = true;
-        sfxCoin();
+        // The surprise actually costs money now, more if you spread poorly.
+        changeMoney(-plan.moneyHit);
+        if (plan.key === "three") sfxCoin();
+        else sfxDown();
         updateScore("security", plan.security);
         updateScore("growth", plan.growth);
         updateScore("smarts", plan.smarts);
@@ -107,6 +155,14 @@ export function setupStage3(ctx: Ctx, showReport: () => void) {
     doc.getElementById("continue-button")?.setProperties({
       onClick: function () {
         sfxStage();
+        const label = plan
+          ? plan.key === "three"
+            ? "Spread across 3 places"
+            : plan.key === "two"
+              ? "Split across 2 places"
+              : "Kept it all in one place"
+          : "Made the big decision";
+        finishStageRecord(3, getMoney(), label);
         flags.done = true;
         flags.engaged = false;
         panel.object3D!.visible = false;
@@ -119,6 +175,7 @@ export function setupStage3(ctx: Ctx, showReport: () => void) {
     if (flags.done) return "hide";
     if (getPhase() !== "stage3") return "hide";
     if (!gus.isDone()) return "hide";
+    injectAmounts(); // fill the real carried total before the board is read
     if (flags.engaged) return "show";
     return "proximity";
   });

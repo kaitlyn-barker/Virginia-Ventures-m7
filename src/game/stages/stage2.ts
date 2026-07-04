@@ -5,7 +5,7 @@
 // ============================================================================
 
 import { Interactable, PanelUI } from "@iwsdk/core";
-import { changeMoney, choices, ECON, getPhase, updateScore } from "../state";
+import { changeMoney, choices, ECON, finishStageRecord, getMoney, getPhase, updateScore } from "../state";
 import { showPhase } from "../phase";
 import { setObjective } from "../hud";
 import { setupGusQuestion } from "./gus";
@@ -81,6 +81,8 @@ export function setupStage2(ctx: Ctx) {
     beatPlan?.setProperties({ display: "flex" });
     beatOutcome?.setProperties({ display: "none" });
 
+    let summary = ""; // the key-choice line for the report timeline
+
     function choosePlan(plan: Stage2Plan) {
       if (flags.planChosen) return; // a second tap must not score twice
       flags.planChosen = true;
@@ -101,17 +103,20 @@ export function setupStage2(ctx: Ctx) {
             text: "You invested $" + plan.invest + ", and it grew to $" + result + "! You earned $" + diff + ".",
           });
           resultTakeaway?.setProperties({ text: plan.takeawayGood });
+          summary = "Invested $" + plan.invest + ", it grew to $" + result;
         } else {
           resultInvest?.setProperties({
             text: "You invested $" + plan.invest + ", and it dropped to $" + result + ". You lost $" + diff + " this time.",
           });
           resultTakeaway?.setProperties({ text: plan.takeawayBad });
+          summary = "Invested $" + plan.invest + ", it dropped to $" + result;
         }
         resultSave?.setProperties({ text: "You kept $" + plan.save + " safe in savings." });
       } else {
         resultInvest?.setProperties({ text: "You did not invest this time." });
         resultSave?.setProperties({ text: "You saved all $" + plan.save + ". It is safe, but it did not grow much." });
         resultTakeaway?.setProperties({ text: plan.takeawaySafe });
+        summary = "Kept all $" + plan.save + " safe";
       }
 
       beatPlan?.setProperties({ display: "none" });
@@ -126,6 +131,7 @@ export function setupStage2(ctx: Ctx) {
     doc.getElementById("continue-button")?.setProperties({
       onClick: function () {
         sfxStage();
+        finishStageRecord(2, getMoney(), summary);
         flags.done = true;
         flags.showingOutcome = false;
         panel.object3D!.visible = false;

@@ -51,6 +51,7 @@ export interface Stage3Plan {
   security: number;
   growth: number;
   smarts: number;
+  moneyHit: number; // dollars the surprise costs; worse when poorly spread
   surprise: string;
   takeaway: string;
 }
@@ -59,4 +60,14 @@ export interface Stage3Plan {
 export interface Personality {
   name: string;
   blurb: string;
+}
+
+// One row of the money timeline: how the running balance moved across a stage,
+// and the key decision the student made. Fed into the report (and the export).
+export interface StageRecord {
+  stage: number; // 1, 2, or 3
+  title: string; // "Growing Up", "First Paycheck", "The Big Decision"
+  startMoney: number;
+  endMoney: number;
+  keyChoice: string; // e.g. "Invested $40, it grew to $56"
 }

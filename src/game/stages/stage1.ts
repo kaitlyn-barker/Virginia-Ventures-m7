@@ -6,7 +6,7 @@
 // ============================================================================
 
 import { Interactable, PanelUI } from "@iwsdk/core";
-import { changeMoney, ECON, getPhase, updateScore } from "../state";
+import { changeMoney, ECON, finishStageRecord, getMoney, getPhase, updateScore } from "../state";
 import { showPhase } from "../phase";
 import { setObjective } from "../hud";
 import { setupGusQuestion } from "./gus";
@@ -144,6 +144,7 @@ export function setupStage1(ctx: Ctx) {
     doc.getElementById("continue-button")?.setProperties({
       onClick: function () {
         sfxStage();
+        finishStageRecord(1, getMoney(), "Saved $" + (piggy + banked) + ", spent $" + spent);
         flags.done = true;
         flags.showingOutcome = false;
         panel.object3D!.visible = false;

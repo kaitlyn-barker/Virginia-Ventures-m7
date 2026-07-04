@@ -7,7 +7,7 @@
 // without this file needing to know they exist.
 // ============================================================================
 
-import type { Character, Meter, Phase } from "./types";
+import type { Character, Meter, Phase, StageRecord } from "./types";
 
 // ----------------------------------------------------------------------------
 // ECONOMIC CONSTANTS  (the stages read these; single source of the dollar math)
@@ -74,6 +74,26 @@ export function setChosenCharacter(c: Character | null) {
 }
 export function getChosenCharacter(): Character | null {
   return chosenCharacter;
+}
+
+// ----------------------------------------------------------------------------
+// MONEY TIMELINE  (how the balance moved across each stage, for the report and
+// the exportable session summary). Indexed by stage so a re-entered stage
+// overwrites rather than duplicates.
+// ----------------------------------------------------------------------------
+const stageHistory: StageRecord[] = [];
+export function beginStageRecord(stage: number, title: string, startMoney: number) {
+  stageHistory[stage - 1] = { stage, title, startMoney, endMoney: startMoney, keyChoice: "" };
+}
+export function finishStageRecord(stage: number, endMoney: number, keyChoice: string) {
+  const r = stageHistory[stage - 1];
+  if (r) {
+    r.endMoney = endMoney;
+    r.keyChoice = keyChoice;
+  }
+}
+export function getStageHistory(): StageRecord[] {
+  return stageHistory.filter(Boolean);
 }
 
 // ----------------------------------------------------------------------------
