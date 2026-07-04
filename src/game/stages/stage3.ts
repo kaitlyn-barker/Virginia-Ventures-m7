@@ -107,6 +107,7 @@ export function setupStage3(ctx: Ctx, showReport: () => void) {
     const beatSurprise = doc.getElementById("beat-surprise");
     const beatOutcome = doc.getElementById("beat-outcome");
     const resultSurprise = doc.getElementById("result-surprise");
+    const resultChip = doc.getElementById("result-chip");
     const resultTakeaway = doc.getElementById("result-takeaway");
 
     s3Intro = doc.getElementById("s3-intro");
@@ -146,6 +147,7 @@ export function setupStage3(ctx: Ctx, showReport: () => void) {
         updateScore("growth", plan.growth);
         updateScore("smarts", plan.smarts);
         resultSurprise?.setProperties({ text: plan.surprise });
+        resultChip?.setProperties({ text: "COST: money you had to pay — $" + plan.moneyHit });
         resultTakeaway?.setProperties({ text: plan.takeaway });
         beatSurprise?.setProperties({ display: "none" });
         beatOutcome?.setProperties({ display: "flex" });
