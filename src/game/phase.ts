@@ -42,8 +42,8 @@ export function showPhase(phase: Phase) {
   if (phase === "setup") {
     setMoney(ECON.STARTING_MONEY); // birthday money — the only hard reset
   } else if (phase === "stage1") {
-    // The first week's allowance lands on top of the birthday money. Stage 1's
-    // own multi-week loop adds the remaining weeks.
+    // Week 1's allowance lands on the carried birthday money as the stage opens;
+    // Stage 1's own loop adds weeks 2 and 3 as the student plays through them.
     changeMoney(ECON.ALLOWANCE_PER_WEEK);
     beginStageRecord(1, STAGE_TITLES[1], getMoney());
   } else if (phase === "stage2") {
