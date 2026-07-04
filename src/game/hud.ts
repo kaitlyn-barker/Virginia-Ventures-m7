@@ -6,8 +6,12 @@
 // scoreboard (scoreboard.ts) mirrors the same data in VR.
 // ============================================================================
 
-import { COLOR, getMoney, getScores, onMoney, onScore } from "./state";
+import { COLOR, getMoney, getScores, onMoney, onObjective, onScore } from "./state";
 import type { Meter, Phase } from "./types";
+
+// setObjective lives in state (both dashboards react to it); re-exported here so
+// callers that import it from the HUD keep working.
+export { setObjective } from "./state";
 
 let hudGrowthValue: HTMLElement | null = null;
 let hudSecurityValue: HTMLElement | null = null;
@@ -169,13 +173,12 @@ function animateMoneyTo(target: number, isGain: boolean) {
   hudDisplayedMoney = target;
 }
 
-// One short line telling the student what to do right now.
-export function setObjective(text: string) {
+// Paint the current goal line into the DOM HUD.
+function paintObjective(text: string) {
   if (hudObjective) {
     hudObjective.textContent = text ? "Goal: " + text : "";
     hudObjective.style.display = text ? "block" : "none";
   }
-  console.log("[OBJECTIVE] " + text);
 }
 
 // Update the little stage label in the HUD header for each phase.
@@ -283,4 +286,5 @@ export function initHud() {
       animateMoneyTo(value, delta > 0);
     }
   });
+  onObjective(paintObjective);
 }

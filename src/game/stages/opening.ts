@@ -21,7 +21,7 @@ const CHARACTERS: Character[] = [
   { id: "sam", name: "Sam" },
 ];
 
-const WELCOME_STEPS = 5;
+const WELCOME_STEPS = 3;
 
 export function setupOpening(ctx: Ctx): { start: () => void } {
   const { world, panels } = ctx;

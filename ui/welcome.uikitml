@@ -21,28 +21,20 @@
 
   <div class="step-area">
     <div id="step-1" class="step">
-      <span class="step-title">Happy Birthday!</span>
-      <span class="step-body">You just got older, and a relative gave you twenty dollars. Over three life stages you will earn, spend, save, and invest your way to becoming a money pro. Here is how it works.</span>
+      <span class="step-title">Happy Birthday — Get Moving!</span>
+      <span class="step-body">You just got $20 for your birthday. Walk with W A S D (or the thumbstick in a headset). Hold the RIGHT mouse button and drag to look around.</span>
     </div>
     <div id="step-2" class="step">
-      <span class="step-title">1. Get Around</span>
-      <span class="step-body">Walk with W A S D or the arrow keys. Hold the RIGHT mouse button and drag to look. In a headset, use the thumbstick. Stroll left and right to visit the shops on Main Street.</span>
+      <span class="step-title">Find Gus, Then Choose</span>
+      <span class="step-body">A glowing beam shows where to go. Talk to Gus when a gold ! pops up, then visit a shop to spend, save, or invest. Every choice moves your meters.</span>
     </div>
     <div id="step-3" class="step">
-      <span class="step-title">2. Talk to Gus</span>
-      <span class="step-body">Gus runs the cart and knows all about money. When a gold ! pops up over him, walk over. He will ask you a quick question to grow your Money Smarts.</span>
-    </div>
-    <div id="step-4" class="step">
-      <span class="step-title">3. Make Your Choices</span>
-      <span class="step-body">At each life stage you decide how much to spend, save, and invest. Every choice moves your meters, so take a moment to think it through.</span>
-    </div>
-    <div id="step-5" class="step">
-      <span class="step-title">4. Watch Your Meters</span>
-      <span class="step-body">Keep an eye on Financial Growth, Financial Security, and Money Smarts. Keeping all three high makes you a Balanced Builder. Ready?</span>
+      <span class="step-title">Grow All Three Meters</span>
+      <span class="step-body">Watch Financial Growth, Financial Security, and Money Smarts across three life stages. Ready to begin?</span>
     </div>
   </div>
 
-  <span id="step-indicator" class="step-indicator">Step 1 of 5</span>
+  <span id="step-indicator" class="step-indicator">Step 1 of 3</span>
 
   <div class="button-row">
     <div id="back-button" class="back-button">

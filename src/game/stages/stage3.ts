@@ -11,7 +11,7 @@ import { Interactable, PanelUI } from "@iwsdk/core";
 import { changeMoney, choices, ECON, finishStageRecord, getMoney, getPhase, updateScore } from "../state";
 import { setupGusQuestion } from "./gus";
 import { sfxClick, sfxCoin, sfxDown, sfxStage } from "../../sfx";
-import { STATIONS } from "../../environment";
+import { setBeaconTarget, STATIONS } from "../../environment";
 import type { Ctx } from "../context";
 import type { PanelDoc, PanelElement, Stage3Plan } from "../types";
 
@@ -57,6 +57,7 @@ export function setupStage3(ctx: Ctx, showReport: () => void) {
       "Spreading your money across different places is called diversifying. If one place has a problem, the others keep you safe. Let's see how you do!",
     radius: 3.0,
     objectiveAfter: "Now go to the Bank to make your final plan.",
+    beaconAfter: "bank",
   });
 
   const panel = world
@@ -157,6 +158,7 @@ export function setupStage3(ctx: Ctx, showReport: () => void) {
     doc.getElementById("continue-button")?.setProperties({
       onClick: function () {
         sfxStage();
+        setBeaconTarget("none");
         const label = plan
           ? plan.key === "three"
             ? "Spread across 3 places"

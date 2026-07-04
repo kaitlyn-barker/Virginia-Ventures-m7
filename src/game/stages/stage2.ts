@@ -12,7 +12,7 @@ import { showPhase } from "../phase";
 import { setObjective } from "../hud";
 import { setupGusQuestion } from "./gus";
 import { sfxCoin, sfxDown, sfxNotify, sfxStage } from "../../sfx";
-import { setStageLook, STATIONS } from "../../environment";
+import { setBeaconTarget, setStageLook, STATIONS } from "../../environment";
 import type { Ctx } from "../context";
 import type { PanelDoc, PanelElement, Stage2Plan } from "../types";
 
@@ -68,6 +68,7 @@ export function setupStage2(ctx: Ctx) {
       "Smart investors put in some money, not all of it. If an investment drops, you still have savings to fall back on. Let's see how you do!",
     radius: 3.0,
     objectiveAfter: "Now head to the Business lot to invest your paycheck.",
+    beaconAfter: "business",
   });
 
   const panel = world
@@ -188,6 +189,7 @@ export function setupStage2(ctx: Ctx) {
       onClick: function () {
         sfxStage();
         finishStageRecord(2, getMoney(), summary);
+        setBeaconTarget("none");
         flags.done = true;
         flags.engaged = false;
         panel.object3D!.visible = false;

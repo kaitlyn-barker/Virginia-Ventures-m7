@@ -13,7 +13,7 @@ import { showPhase } from "../phase";
 import { setObjective } from "../hud";
 import { setupGusQuestion } from "./gus";
 import { sfxClick, sfxCoin, sfxStage } from "../../sfx";
-import { setStageLook, STATIONS } from "../../environment";
+import { setBeaconTarget, setStageLook, STATIONS } from "../../environment";
 import type { Ctx } from "../context";
 import type { PanelDoc, PanelElement } from "../types";
 
@@ -34,6 +34,7 @@ export function setupStage1(ctx: Ctx) {
       "If you spend it all at once, you have nothing left for later or for a surprise. Saving even a little keeps you ready. Let's see how you do!",
     radius: 3.0,
     objectiveAfter: "Now head to the Bank to make your money plan.",
+    beaconAfter: "bank",
   });
 
   const panel = world
@@ -288,6 +289,7 @@ export function setupStage1(ctx: Ctx) {
       onClick: function () {
         sfxStage();
         finishStageRecord(1, getMoney(), "Saved $" + (cumPiggy + cumBank) + ", spent $" + cumSpent);
+        setBeaconTarget("none");
         flags.done = true;
         flags.engaged = false;
         panel.object3D!.visible = false;

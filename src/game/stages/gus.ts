@@ -10,7 +10,7 @@ import { Interactable, PanelUI } from "@iwsdk/core";
 import { getPhase, SMARTS_BEST, SMARTS_OK, updateScore } from "../state";
 import { setObjective } from "../hud";
 import { sfxClick, sfxCoin } from "../../sfx";
-import { GUS_SPOT } from "../../environment";
+import { GUS_SPOT, setBeaconTarget } from "../../environment";
 import type { Ctx } from "../context";
 import type { PanelDoc, Phase } from "../types";
 
@@ -20,6 +20,7 @@ export interface GusQuestionOptions {
   lesson: string; // Gus's explanation, shown after any answer
   radius: number; // how close you must be for it to open
   objectiveAfter: string; // the goal line once Gus is done
+  beaconAfter: "bank" | "business"; // which station beacon lights once Gus is done
 }
 
 export interface GusQuestion {
@@ -71,6 +72,8 @@ export function setupGusQuestion(ctx: Ctx, opts: GusQuestionOptions): GusQuestio
         stateFlags.replying = false;
         panel.object3D!.visible = false;
         setObjective(opts.objectiveAfter);
+        setBeaconTarget(opts.beaconAfter); // light the way to the station
+
       },
     });
   });

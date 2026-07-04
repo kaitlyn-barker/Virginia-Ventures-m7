@@ -9,7 +9,7 @@
 
 import { PanelUI, Quaternion, Vector3, VisibilityState } from "@iwsdk/core";
 import type { World } from "@iwsdk/core";
-import { getMoney, getScores, onMoney, onScore } from "./state";
+import { getMoney, getObjective, getScores, onMoney, onObjective, onScore } from "./state";
 import type { PanelManager } from "./panels";
 import type { PanelDoc, PanelElement } from "./types";
 import type { Ticker } from "./ticker";
@@ -31,6 +31,11 @@ export function initScoreboard(world: World, panels: PanelManager, ticker: Ticke
   let growthFill: PanelElement | null = null;
   let securityFill: PanelElement | null = null;
   let smartsFill: PanelElement | null = null;
+  let objectiveEl: PanelElement | null = null;
+
+  function paintObjective(text: string) {
+    objectiveEl?.setProperties({ text: text ? "Goal: " + text : "", display: text ? "flex" : "none" });
+  }
 
   // Only push a property when it actually changed, so we are not spamming UIKit.
   let lastMoney = Number.NaN;
@@ -75,13 +80,16 @@ export function initScoreboard(world: World, panels: PanelManager, ticker: Ticke
     growthFill = d.getElementById("fill-growth");
     securityFill = d.getElementById("fill-security");
     smartsFill = d.getElementById("fill-smarts");
+    objectiveEl = d.getElementById("objective");
     lastMoney = lastGrowth = lastSecurity = lastSmarts = Number.NaN; // force first write
     update();
+    paintObjective(getObjective()); // catch up to any goal set before the panel loaded
   });
 
   // Push updates on every state change too (not only in the follow loop).
   onScore(update);
   onMoney(update);
+  onObjective(paintObjective);
 
   // Only show the floating scoreboard in a headset; the DOM HUD owns the browser.
   world.visibilityState.subscribe(function (state: VisibilityState) {

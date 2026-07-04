@@ -927,6 +927,65 @@ function buildAmbientLife(world: any) {
 // buildEnvironment  —  put the whole street together. Returns the walkable
 // ground so index.ts can mark it for locomotion. Signature unchanged.
 // ----------------------------------------------------------------------------
+// ============================================================================
+// STATION BEACONS  —  a glowing beam with a bobbing arrow over the place you
+// should walk to next. Gus already waves you over with his gold "!"; these do
+// the same job for the Bank and the Business lot. The game toggles which one is
+// lit (setBeaconTarget) as the current objective changes, so kids in a headset
+// always have a clear "go here" landmark — the single biggest wayfinding win.
+// ============================================================================
+const beacons: { bank: Group | null; business: Group | null; markers: Mesh[] } = {
+  bank: null,
+  business: null,
+  markers: [],
+};
+
+function makeBeacon(x: number, z: number): Group {
+  const g = new Group();
+  // A soft, tall gold beam so it reads from across the plaza.
+  const beamMat = new MeshBasicMaterial({
+    color: new Color("#c8962a"),
+    transparent: true,
+    opacity: 0.28,
+    depthWrite: false,
+  });
+  const beam = new Mesh(new CylinderGeometry(0.14, 0.14, 6, 10), beamMat);
+  beam.position.y = 3;
+  g.add(beam);
+  // A bright arrow pointing down at the spot, bobbing so it draws the eye.
+  const mark = new Mesh(new ConeGeometry(0.36, 0.7, 4), new MeshBasicMaterial({ color: new Color("#c8962a") }));
+  mark.rotation.x = Math.PI; // point down
+  mark.position.y = 4.6;
+  g.add(mark);
+  beacons.markers.push(mark);
+  g.position.set(x, 0, z);
+  g.visible = false;
+  return g;
+}
+
+function buildBeacons(world: any) {
+  beacons.bank = makeBeacon(STATIONS.bank.x, STATIONS.bank.z);
+  beacons.business = makeBeacon(STATIONS.business.x, STATIONS.business.z);
+  world.createTransformEntity(beacons.bank);
+  world.createTransformEntity(beacons.business);
+  let t = 0;
+  setInterval(function () {
+    t = t + 1;
+    const y = 4.6 + Math.sin(t * 0.1) * 0.2;
+    for (const m of beacons.markers) {
+      m.position.y = y;
+      m.rotation.y = t * 0.05; // slow spin
+    }
+  }, 33);
+}
+
+// Light exactly one station beacon (or none). Called by the game as the goal
+// moves from Gus to a station and back.
+export function setBeaconTarget(target: "none" | "bank" | "business") {
+  if (beacons.bank) beacons.bank.visible = target === "bank";
+  if (beacons.business) beacons.business.visible = target === "business";
+}
+
 export function buildEnvironment(world: any) {
   buildSkyAndLights(world);
   const ground = buildStreet(world);
@@ -938,6 +997,7 @@ export function buildEnvironment(world: any) {
   buildTrees(world);
   buildLamps(world);
   buildGus(world);
+  buildBeacons(world);
   buildMoneyPlant(world);
   buildAmbientLife(world);
   return { ground, boundary };

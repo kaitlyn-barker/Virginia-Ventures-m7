@@ -105,14 +105,31 @@ export function getStageHistory(): StageRecord[] {
 // ----------------------------------------------------------------------------
 type ScoreListener = (meter: Meter, before: number, after: number) => void;
 type MoneyListener = (value: number, delta: number | null) => void; // null = reset
+type ObjectiveListener = (text: string) => void;
 
 const scoreListeners: ScoreListener[] = [];
 const moneyListeners: MoneyListener[] = [];
+const objectiveListeners: ObjectiveListener[] = [];
 export function onScore(cb: ScoreListener) {
   scoreListeners.push(cb);
 }
 export function onMoney(cb: MoneyListener) {
   moneyListeners.push(cb);
+}
+export function onObjective(cb: ObjectiveListener) {
+  objectiveListeners.push(cb);
+}
+
+// The current one-line goal ("go say hi to Gus"). Both the DOM HUD and the
+// headset scoreboard show it, so it lives here and notifies both.
+let currentObjective = "";
+export function getObjective(): string {
+  return currentObjective;
+}
+export function setObjective(text: string) {
+  currentObjective = text;
+  for (const cb of objectiveListeners) cb(text);
+  console.log("[OBJECTIVE] " + text);
 }
 
 // ----------------------------------------------------------------------------
