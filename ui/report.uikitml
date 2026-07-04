@@ -1,11 +1,13 @@
-<!-- Final money report for Money Moves, with meter bars. Compiled to public/ui/report.json. -->
+<!-- Final money report for Money Moves, with meter bars, a money timeline, and
+     a debrief beat. Compiled to public/ui/report.json. -->
 <style>
   .panel { display: flex; flex-direction: column; align-items: center; padding: 5; width: 140; background-color: #f3e9d2; border-width: 1.5; border-color: #1F3A5F; border-radius: 5; }
+  .beat-col { display: flex; flex-direction: column; align-items: center; width: 130; }
   .eyebrow { font-size: 3; font-weight: bold; color: #8a6118; text-align: center; letter-spacing: 2; }
   .greeting { font-size: 5; font-weight: bold; color: #1F3A5F; text-align: center; margin-top: 2; }
-  .personality-name { font-size: 8; font-weight: bold; color: #1F3A5F; text-align: center; margin-top: 2; }
-  .personality-blurb { font-size: 3.6; color: #1F3A5F; text-align: center; margin-top: 2; }
-  .meters { display: flex; flex-direction: column; align-items: center; width: 126; margin-top: 4; }
+  .personality-name { font-size: 7; font-weight: bold; color: #1F3A5F; text-align: center; margin-top: 2; }
+  .personality-blurb { font-size: 3.4; color: #1F3A5F; text-align: center; margin-top: 2; }
+  .meters { display: flex; flex-direction: column; align-items: center; width: 126; margin-top: 3; }
   .meter-row { display: flex; flex-direction: row; align-items: center; width: 126; margin-top: 1.5; }
   .dot { width: 3.5; height: 3.5; border-radius: 2; margin-right: 2; }
   .dot-growth { background-color: #5fae4a; }
@@ -18,36 +20,82 @@
   .bar-fill-security { background-color: #4a8fd6; }
   .bar-fill-smarts { background-color: #c8962a; }
   .meter-value { font-size: 3.6; font-weight: bold; color: #1F3A5F; width: 12; text-align: right; }
+  .section-head { font-size: 3; font-weight: bold; color: #8a6118; text-align: center; letter-spacing: 2; margin-top: 4; }
+  .tl { display: flex; flex-direction: column; align-items: stretch; width: 126; margin-top: 1; }
+  .tl-row { display: flex; flex-direction: column; align-items: stretch; width: 126; margin-top: 2; }
+  .tl-line { font-size: 3.2; font-weight: bold; color: #1F3A5F; }
+  .tl-bar-bg { width: 126; height: 3; background-color: #e2dccb; border-radius: 1.5; margin-top: 1; }
+  .tl-fill { height: 3; background-color: #5fae4a; border-radius: 1.5; }
+  .tl-choice { font-size: 2.8; color: #8a6118; margin-top: 1; }
+  .next-button { display: flex; align-items: center; justify-content: center; margin-top: 5; padding-top: 3; padding-bottom: 3; padding-left: 9; padding-right: 9; background-color: #c8962a; border-radius: 4; cursor: pointer; }
+  .next-label { font-size: 4.4; font-weight: bold; color: #1F3A5F; word-break: keep-all; }
+  .debrief-intro { font-size: 3.8; font-weight: bold; color: #1F3A5F; text-align: center; margin-top: 2; }
+  .debrief-q { font-size: 3.6; color: #1F3A5F; text-align: left; width: 124; margin-top: 3; }
   .play-again-button { display: flex; align-items: center; justify-content: center; margin-top: 5; padding-top: 3; padding-bottom: 3; padding-left: 9; padding-right: 9; background-color: #c8962a; border-radius: 4; cursor: pointer; }
   .play-again-label { font-size: 4.4; font-weight: bold; color: #1F3A5F; word-break: keep-all; }
 </style>
 
 <div class="panel">
-  <span class="eyebrow">YOUR MONEY REPORT</span>
-  <span id="greeting" class="greeting">Great job!</span>
-  <span id="personality-name" class="personality-name">...</span>
-  <span id="personality-blurb" class="personality-blurb">...</span>
-  <div class="meters">
-    <div class="meter-row">
-      <div class="dot dot-growth"></div>
-      <span class="meter-label">Growth</span>
-      <div class="bar-bg"><div id="fill-growth" class="bar-fill bar-fill-growth"></div></div>
-      <span id="value-growth" class="meter-value">0</span>
+  <!-- The report: personality, meters, and how the money moved across stages. -->
+  <div id="beat-main" class="beat-col">
+    <span class="eyebrow">YOUR MONEY REPORT</span>
+    <span id="greeting" class="greeting">Great job!</span>
+    <span id="personality-name" class="personality-name">...</span>
+    <span id="personality-blurb" class="personality-blurb">...</span>
+    <div class="meters">
+      <div class="meter-row">
+        <div class="dot dot-growth"></div>
+        <span class="meter-label">Growth</span>
+        <div class="bar-bg"><div id="fill-growth" class="bar-fill bar-fill-growth"></div></div>
+        <span id="value-growth" class="meter-value">0</span>
+      </div>
+      <div class="meter-row">
+        <div class="dot dot-security"></div>
+        <span class="meter-label">Security</span>
+        <div class="bar-bg"><div id="fill-security" class="bar-fill bar-fill-security"></div></div>
+        <span id="value-security" class="meter-value">0</span>
+      </div>
+      <div class="meter-row">
+        <div class="dot dot-smarts"></div>
+        <span class="meter-label">Smarts</span>
+        <div class="bar-bg"><div id="fill-smarts" class="bar-fill bar-fill-smarts"></div></div>
+        <span id="value-smarts" class="meter-value">0</span>
+      </div>
     </div>
-    <div class="meter-row">
-      <div class="dot dot-security"></div>
-      <span class="meter-label">Security</span>
-      <div class="bar-bg"><div id="fill-security" class="bar-fill bar-fill-security"></div></div>
-      <span id="value-security" class="meter-value">0</span>
+
+    <span class="section-head">HOW YOUR MONEY GREW</span>
+    <div class="tl">
+      <div class="tl-row">
+        <span id="tl-1-line" class="tl-line">...</span>
+        <div class="tl-bar-bg"><div id="tl-1-fill" class="tl-fill"></div></div>
+        <span id="tl-1-choice" class="tl-choice">...</span>
+      </div>
+      <div class="tl-row">
+        <span id="tl-2-line" class="tl-line">...</span>
+        <div class="tl-bar-bg"><div id="tl-2-fill" class="tl-fill"></div></div>
+        <span id="tl-2-choice" class="tl-choice">...</span>
+      </div>
+      <div class="tl-row">
+        <span id="tl-3-line" class="tl-line">...</span>
+        <div class="tl-bar-bg"><div id="tl-3-fill" class="tl-fill"></div></div>
+        <span id="tl-3-choice" class="tl-choice">...</span>
+      </div>
     </div>
-    <div class="meter-row">
-      <div class="dot dot-smarts"></div>
-      <span class="meter-label">Smarts</span>
-      <div class="bar-bg"><div id="fill-smarts" class="bar-fill bar-fill-smarts"></div></div>
-      <span id="value-smarts" class="meter-value">0</span>
+
+    <div id="to-debrief-button" class="next-button">
+      <span class="next-label">One More Thing</span>
     </div>
   </div>
-  <div id="play-again-button" class="play-again-button">
-    <span class="play-again-label">Play Again</span>
+
+  <!-- Debrief: three reflection questions to carry back to class. -->
+  <div id="beat-debrief" class="beat-col">
+    <span class="eyebrow">BEFORE YOU TAKE OFF YOUR HEADSET</span>
+    <span class="debrief-intro">Think about these to share back in class:</span>
+    <span class="debrief-q">1. How did your money grow or shrink across the three stages?</span>
+    <span class="debrief-q">2. Describe a moment when an unexpected event changed your money.</span>
+    <span class="debrief-q">3. Would you save, spend, or invest differently next time? Why?</span>
+    <div id="play-again-button" class="play-again-button">
+      <span class="play-again-label">Play Again</span>
+    </div>
   </div>
 </div>

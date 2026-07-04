@@ -82,14 +82,18 @@ export function getChosenCharacter(): Character | null {
 // overwrites rather than duplicates.
 // ----------------------------------------------------------------------------
 const stageHistory: StageRecord[] = [];
+const stageStartTimes: number[] = []; // ms timestamps, for per-stage elapsed time
 export function beginStageRecord(stage: number, title: string, startMoney: number) {
-  stageHistory[stage - 1] = { stage, title, startMoney, endMoney: startMoney, keyChoice: "" };
+  stageHistory[stage - 1] = { stage, title, startMoney, endMoney: startMoney, keyChoice: "", seconds: 0 };
+  stageStartTimes[stage - 1] = Date.now();
 }
 export function finishStageRecord(stage: number, endMoney: number, keyChoice: string) {
   const r = stageHistory[stage - 1];
   if (r) {
     r.endMoney = endMoney;
     r.keyChoice = keyChoice;
+    const started = stageStartTimes[stage - 1];
+    if (started) r.seconds = Math.round((Date.now() - started) / 1000);
   }
 }
 export function getStageHistory(): StageRecord[] {

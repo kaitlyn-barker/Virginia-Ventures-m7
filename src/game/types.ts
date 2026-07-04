@@ -70,4 +70,5 @@ export interface StageRecord {
   startMoney: number;
   endMoney: number;
   keyChoice: string; // e.g. "Invested $40, it grew to $56"
+  seconds: number; // wall-clock time the student spent in the stage
 }

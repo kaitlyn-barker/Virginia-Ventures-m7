@@ -1,21 +1,32 @@
 // ============================================================================
 // report.ts  —  the finale. Names the money personality from the CHOICES the
 // player actually made (so a spender is never called a saver), greets the
-// chosen explorer, fills the three meter bars, and offers Play Again.
+// chosen explorer, fills the three meter bars AND a per-stage money timeline
+// (start -> end + the key choice), then a debrief beat with the three questions
+// the class reflection asks. A full session summary is logged and saved to
+// localStorage for the teacher-facing side of the course.
 // ============================================================================
 
 import { Interactable, PanelUI } from "@iwsdk/core";
-import { choices, getChosenCharacter, getScores } from "../state";
+import {
+  choices,
+  getChosenCharacter,
+  getMoney,
+  getScores,
+  getStageHistory,
+} from "../state";
 import { showPhase, registerPhasePanel } from "../phase";
 import { setObjective } from "../hud";
 import { sfxClick, sfxFanfare } from "../../sfx";
 import { STATIONS } from "../../environment";
 import type { Ctx } from "../context";
-import type { PanelDoc, Personality } from "../types";
+import type { PanelDoc, PanelElement, Personality } from "../types";
 
 // The report meter track is 100 wide in the .uikitml, drawn at 0.4 scale, so a
-// full meter (100) fills 40 units. (Kept as a named width for clarity.)
+// full meter (100) fills 40 units.
 const REPORT_TRACK_WIDTH = 40;
+// The timeline bars sit in a 126-wide track (see .tl-bar-bg in the .uikitml).
+const TIMELINE_TRACK_WIDTH = 126;
 
 const PERSONALITIES: Record<string, Personality> = {
   bold: {
@@ -40,12 +51,43 @@ const PERSONALITIES: Record<string, Personality> = {
   },
 };
 
+// Decide the money personality from the choices, most distinctive first.
+function personalityKey(): string {
+  if (choices.stage3 === "three") return "diversifier"; // spread out in the big decision
+  if (choices.stage2 === "lots") return "bold"; // invested almost all of the paycheck
+  if (choices.stage1 === "spend") return "spender"; // spent most of the money
+  if (choices.stage1 === "safe" || choices.stage2 === "safe") return "saver"; // kept it safe
+  return "balanced"; // a steady little of everything
+}
+
+// Log a full session summary and stash it in localStorage for the teacher side.
+function exportSession(personality: string) {
+  const s = getScores();
+  const character = getChosenCharacter();
+  const timeline = getStageHistory();
+  const session = {
+    character: character ? character.name : "explorer",
+    personality,
+    finalMoney: getMoney(),
+    meters: { growth: s.growth, security: s.security, smarts: s.smarts },
+    choices: { stage1: choices.stage1, stage2: choices.stage2, stage3: choices.stage3 },
+    timeline,
+    totalSeconds: timeline.reduce(function (sum, r) { return sum + r.seconds; }, 0),
+  };
+  console.log("[Money Moves] session summary", session);
+  try {
+    localStorage.setItem("moneyMoves.session", JSON.stringify(session));
+  } catch {
+    // localStorage may be unavailable (private mode / headset browser) — that's fine.
+  }
+}
+
 export function setupReport(ctx: Ctx): { showReport: () => void } {
   const { world, panels } = ctx;
 
   const panel = world
     .createTransformEntity()
-    .addComponent(PanelUI, { config: "./ui/report.json", maxWidth: 2.6, maxHeight: 2.2 })
+    .addComponent(PanelUI, { config: "./ui/report.json", maxWidth: 2.6, maxHeight: 2.6 })
     .addComponent(Interactable);
   panel.object3D!.position.set(STATIONS.bank.x, 1.6, STATIONS.bank.z + 2.2);
   panel.object3D!.visible = false;
@@ -55,6 +97,18 @@ export function setupReport(ctx: Ctx): { showReport: () => void } {
   let doc: PanelDoc | null = null;
   panels.whenPanelReady(panel, function (d: PanelDoc) {
     doc = d;
+    const beatMain = d.getElementById("beat-main");
+    const beatDebrief = d.getElementById("beat-debrief");
+    beatMain?.setProperties({ display: "flex" });
+    beatDebrief?.setProperties({ display: "none" });
+
+    d.getElementById("to-debrief-button")?.setProperties({
+      onClick: function () {
+        sfxClick();
+        beatMain?.setProperties({ display: "none" });
+        beatDebrief?.setProperties({ display: "flex" });
+      },
+    });
     d.getElementById("play-again-button")?.setProperties({
       onClick: function () {
         sfxClick();
@@ -63,25 +117,26 @@ export function setupReport(ctx: Ctx): { showReport: () => void } {
     });
   });
 
+  // Fill one timeline row: "Growing Up: $30 -> $27", a bar sized to the money,
+  // and the key choice line.
+  function fillTimelineRow(n: number, line: PanelElement | null, fill: PanelElement | null, choice: PanelElement | null, maxEnd: number) {
+    const history = getStageHistory();
+    const rec = history[n - 1];
+    if (!rec) {
+      line?.setProperties({ text: "" });
+      choice?.setProperties({ text: "" });
+      fill?.setProperties({ width: 0 });
+      return;
+    }
+    line?.setProperties({ text: rec.title + ": $" + rec.startMoney + " → $" + rec.endMoney });
+    choice?.setProperties({ text: rec.keyChoice });
+    const w = maxEnd > 0 ? Math.round((rec.endMoney / maxEnd) * TIMELINE_TRACK_WIDTH) : 0;
+    fill?.setProperties({ width: w });
+  }
+
   function showReport() {
     const s = getScores();
-
-    // The money personality reflects the CHOICES the player made, from the most
-    // distinctive choice to the most general. This is why a player who spends
-    // can never be called a saver: each archetype is gated on a real decision.
-    let key = "balanced";
-    if (choices.stage3 === "three") {
-      key = "diversifier"; // you spread your money out in the big decision
-    } else if (choices.stage2 === "lots") {
-      key = "bold"; // you invested almost all of your paycheck
-    } else if (choices.stage1 === "spend") {
-      key = "spender"; // you chose to spend most of your money
-    } else if (choices.stage1 === "safe" || choices.stage2 === "safe") {
-      key = "saver"; // you kept your money safe instead of investing
-    } else {
-      key = "balanced"; // a steady little of everything
-    }
-
+    const key = personalityKey();
     const p = PERSONALITIES[key];
     const character = getChosenCharacter();
     const name = character ? character.name : "explorer";
@@ -96,8 +151,16 @@ export function setupReport(ctx: Ctx): { showReport: () => void } {
       doc.getElementById("fill-growth")?.setProperties({ width: Math.round((s.growth / 100) * REPORT_TRACK_WIDTH) });
       doc.getElementById("fill-security")?.setProperties({ width: Math.round((s.security / 100) * REPORT_TRACK_WIDTH) });
       doc.getElementById("fill-smarts")?.setProperties({ width: Math.round((s.smarts / 100) * REPORT_TRACK_WIDTH) });
+
+      // The money timeline: scale each stage's bar to the biggest end balance.
+      const history = getStageHistory();
+      const maxEnd = history.reduce(function (m, r) { return Math.max(m, r.endMoney); }, 0);
+      fillTimelineRow(1, doc.getElementById("tl-1-line"), doc.getElementById("tl-1-fill"), doc.getElementById("tl-1-choice"), maxEnd);
+      fillTimelineRow(2, doc.getElementById("tl-2-line"), doc.getElementById("tl-2-fill"), doc.getElementById("tl-2-choice"), maxEnd);
+      fillTimelineRow(3, doc.getElementById("tl-3-line"), doc.getElementById("tl-3-fill"), doc.getElementById("tl-3-choice"), maxEnd);
     }
 
+    exportSession(p.name);
     sfxFanfare();
     showPhase("report");
     panels.presentPanel(panel); // place it comfortably in front, wherever you stand
