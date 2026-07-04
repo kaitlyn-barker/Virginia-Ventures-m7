@@ -13,6 +13,7 @@ import { setObjective } from "../hud";
 import { setupGusQuestion } from "./gus";
 import { sfxCoin, sfxDown, sfxNotify, sfxStage } from "../../sfx";
 import { setBeaconTarget, setStageLook, STATIONS } from "../../environment";
+import { setDeltaChips } from "../deltachips";
 import type { Ctx } from "../context";
 import type { PanelDoc, PanelElement, Stage2Plan } from "../types";
 
@@ -69,6 +70,11 @@ export function setupStage2(ctx: Ctx) {
     radius: 3.0,
     objectiveAfter: "Now head to the Business lot to invest your paycheck.",
     beaconAfter: "business",
+    answers: {
+      a: { best: true, reply: "Exactly right!" },
+      b: { best: false, reply: "Not so fast. If you invest every dollar and it drops, you have nothing to fall back on." },
+      c: { best: false, reply: "It can feel scary, but investing a little can help your money grow over time." },
+    },
   });
 
   const panel = world
@@ -99,7 +105,7 @@ export function setupStage2(ctx: Ctx) {
     showBeat("plan");
 
     function setChip(el: PanelElement | null, word: string, amount: number, color: string) {
-      el?.setProperties({ text: word + " — $" + amount, backgroundColor: color });
+      el?.setProperties({ text: word + " - $" + amount, backgroundColor: color });
     }
 
     let chosen: Stage2Plan | null = null;
@@ -120,7 +126,7 @@ export function setupStage2(ctx: Ctx) {
         text:
           plan.invest > 0
             ? "You invested $" + plan.invest + " in Main Street Lemonade Co. Weeks pass... the news is coming in!"
-            : "You saved all $" + plan.save + ". Weeks pass — let's see how your savings did.",
+            : "You saved all $" + plan.save + ". Weeks pass - let's see how your savings did.",
       });
       showBeat("news");
     }
@@ -131,6 +137,8 @@ export function setupStage2(ctx: Ctx) {
       if (!plan) return;
       updateScore("security", plan.security);
       updateScore("smarts", plan.smarts);
+      const growthDelta = plan.invest > 0 ? (isGood ? plan.growthGood : plan.growthBad) : plan.growthGood;
+      setDeltaChips(doc, { growth: growthDelta, security: plan.security, smarts: plan.smarts });
 
       if (plan.invest > 0) {
         updateScore("growth", isGood ? plan.growthGood : plan.growthBad);
@@ -164,7 +172,7 @@ export function setupStage2(ctx: Ctx) {
         sfxCoin();
         resultInvest?.setProperties({ text: "You played it safe. The lemonade news did not shake you at all." });
         resultSave?.setProperties({
-          text: "Your $" + plan.save + " stayed safe and earned $" + interest + " in interest — safe but slow!",
+          text: "Your $" + plan.save + " stayed safe and earned $" + interest + " in interest - safe but slow!",
         });
         setChip(resultChip, "INTEREST: money you earn for saving", interest, "#8a6118");
         resultTakeaway?.setProperties({ text: plan.takeawaySafe });

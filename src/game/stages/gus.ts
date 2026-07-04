@@ -2,8 +2,8 @@
 // gus.ts  —  one shared Gus quiz panel, used by all three stages.
 // Each stage asks Gus a different question, but the shape is identical: a
 // question beat with three answers, then a reply beat Gus explains, then Got It.
-// The best answer grows Money Smarts more; any answer earns some, because
-// thinking it through is the point. This factors that shape into one place.
+// The best answer earns Money Smarts (with a "+10 Smarts" chip); each WRONG
+// answer gets its own gentle, specific correction, so a miss actually teaches.
 // ============================================================================
 
 import { Interactable, PanelUI } from "@iwsdk/core";
@@ -14,13 +14,20 @@ import { GUS_SPOT, setBeaconTarget } from "../../environment";
 import type { Ctx } from "../context";
 import type { PanelDoc, Phase } from "../types";
 
+// One answer choice: whether it is the best answer, and Gus's reply to it.
+export interface GusAnswer {
+  best: boolean;
+  reply: string;
+}
+
 export interface GusQuestionOptions {
   config: string; // e.g. "./ui/gus-stage1.json"
   phase: Phase; // the phase this question belongs to
-  lesson: string; // Gus's explanation, shown after any answer
+  lesson: string; // Gus's shared teaching point, added after every reply
   radius: number; // how close you must be for it to open
   objectiveAfter: string; // the goal line once Gus is done
   beaconAfter: "bank" | "business"; // which station beacon lights once Gus is done
+  answers: { a: GusAnswer; b: GusAnswer; c: GusAnswer }; // per-answer replies
 }
 
 export interface GusQuestion {
@@ -45,25 +52,29 @@ export function setupGusQuestion(ctx: Ctx, opts: GusQuestionOptions): GusQuestio
     const beatQ = doc.getElementById("beat-q");
     const beatReply = doc.getElementById("beat-reply");
     const replyText = doc.getElementById("reply-text");
+    const replyChip = doc.getElementById("reply-chip");
 
     beatQ?.setProperties({ display: "flex" });
     beatReply?.setProperties({ display: "none" });
 
     let answered = false; // only the first tap counts
-    function answer(isBest: boolean, opener: string) {
+    function answer(cfg: GusAnswer) {
       if (answered) return;
       answered = true;
       sfxCoin();
-      updateScore("smarts", isBest ? SMARTS_BEST : SMARTS_OK);
-      replyText?.setProperties({ text: opener + " " + opts.lesson });
+      updateScore("smarts", cfg.best ? SMARTS_BEST : SMARTS_OK);
+      replyText?.setProperties({ text: cfg.reply + " " + opts.lesson });
+      // The Smarts chip only shows when the best answer actually earned points.
+      if (cfg.best) replyChip?.setProperties({ text: "+" + SMARTS_BEST + " Smarts", display: "flex" });
+      else replyChip?.setProperties({ display: "none" });
       beatQ?.setProperties({ display: "none" });
       beatReply?.setProperties({ display: "flex" });
       stateFlags.replying = true;
     }
 
-    doc.getElementById("answer-a")?.setProperties({ onClick: function () { answer(true, "Exactly right!"); } });
-    doc.getElementById("answer-b")?.setProperties({ onClick: function () { answer(false, "Good guess! Here is the thing."); } });
-    doc.getElementById("answer-c")?.setProperties({ onClick: function () { answer(false, "Good guess! Here is the thing."); } });
+    doc.getElementById("answer-a")?.setProperties({ onClick: function () { answer(opts.answers.a); } });
+    doc.getElementById("answer-b")?.setProperties({ onClick: function () { answer(opts.answers.b); } });
+    doc.getElementById("answer-c")?.setProperties({ onClick: function () { answer(opts.answers.c); } });
 
     doc.getElementById("got-it-button")?.setProperties({
       onClick: function () {
@@ -73,7 +84,6 @@ export function setupGusQuestion(ctx: Ctx, opts: GusQuestionOptions): GusQuestio
         panel.object3D!.visible = false;
         setObjective(opts.objectiveAfter);
         setBeaconTarget(opts.beaconAfter); // light the way to the station
-
       },
     });
   });

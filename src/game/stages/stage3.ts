@@ -12,6 +12,7 @@ import { changeMoney, choices, ECON, finishStageRecord, getMoney, getPhase, upda
 import { setupGusQuestion } from "./gus";
 import { sfxClick, sfxCoin, sfxDown, sfxStage } from "../../sfx";
 import { setBeaconTarget, STATIONS } from "../../environment";
+import { setDeltaChips } from "../deltachips";
 import type { Ctx } from "../context";
 import type { PanelDoc, PanelElement, Stage3Plan } from "../types";
 
@@ -58,6 +59,11 @@ export function setupStage3(ctx: Ctx, showReport: () => void) {
     radius: 3.0,
     objectiveAfter: "Now go to the Bank to make your final plan.",
     beaconAfter: "bank",
+    answers: {
+      a: { best: true, reply: "Exactly right!" },
+      b: { best: false, reply: "Simple, but risky. If that one place has trouble, all your money is in trouble at once." },
+      c: { best: false, reply: "It really does matter. Spreading your money out keeps you safe if one place struggles." },
+    },
   });
 
   const panel = world
@@ -147,8 +153,9 @@ export function setupStage3(ctx: Ctx, showReport: () => void) {
         updateScore("security", plan.security);
         updateScore("growth", plan.growth);
         updateScore("smarts", plan.smarts);
+        setDeltaChips(doc, { growth: plan.growth, security: plan.security, smarts: plan.smarts });
         resultSurprise?.setProperties({ text: plan.surprise });
-        resultChip?.setProperties({ text: "COST: money you had to pay — $" + plan.moneyHit });
+        resultChip?.setProperties({ text: "COST: money you had to pay - $" + plan.moneyHit });
         resultTakeaway?.setProperties({ text: plan.takeaway });
         beatSurprise?.setProperties({ display: "none" });
         beatOutcome?.setProperties({ display: "flex" });

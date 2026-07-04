@@ -1,7 +1,7 @@
 // ============================================================================
 // stage1.ts  —  Gus's first question, then a 3-WEEK allowance loop at the Bank.
 // Each week the student gets $10, splits it into Spend / Save / Bank, and then
-// watches a week pass so the bank pays visible interest ("$10 earned $1 — now
+// watches a week pass so the bank pays visible interest ("$10 earned $1 - now
 // $11"). Between weeks 2 and 3 a friend offers a rare card for $15, taken from
 // savings — a first, concrete taste of opportunity cost. After three weeks the
 // summary sets the meters and the money personality.
@@ -14,6 +14,7 @@ import { setObjective } from "../hud";
 import { setupGusQuestion } from "./gus";
 import { sfxClick, sfxCoin, sfxStage } from "../../sfx";
 import { setBeaconTarget, setStageLook, STATIONS } from "../../environment";
+import { setDeltaChips } from "../deltachips";
 import type { Ctx } from "../context";
 import type { PanelDoc, PanelElement } from "../types";
 
@@ -35,6 +36,11 @@ export function setupStage1(ctx: Ctx) {
     radius: 3.0,
     objectiveAfter: "Now head to the Bank to make your money plan.",
     beaconAfter: "bank",
+    answers: {
+      a: { best: true, reply: "Exactly right!" },
+      b: { best: false, reply: "Not quite. Spending every dollar right away leaves nothing for later or for a surprise." },
+      c: { best: false, reply: "Careful - money does not always come when we want it to, so it is smart to keep some." },
+    },
   });
 
   const panel = world
@@ -161,10 +167,10 @@ export function setupStage1(ctx: Ctx) {
 
         if (principal > 0) {
           weekBankLine?.setProperties({
-            text: "Your $" + principal + " in the bank earned $" + interest + " — now $" + (principal + interest) + ".",
+            text: "Your $" + principal + " in the bank earned $" + interest + " - now $" + (principal + interest) + ".",
           });
         } else {
-          weekBankLine?.setProperties({ text: "Nothing in the bank yet — money there grows every week!" });
+          weekBankLine?.setProperties({ text: "Nothing in the bank yet - money there grows every week!" });
         }
         weekTally?.setProperties({
           text: "So far: spent $" + cumSpent + ", saved $" + cumPiggy + ", banked $" + cumBank + ".",
@@ -194,7 +200,7 @@ export function setupStage1(ctx: Ctx) {
       friendText?.setProperties({
         text: canAfford
           ? "Your friend offers you a rare trading card for $15. You would pay for it from your savings."
-          : "Your friend offers you a rare trading card for $15 — but you have not saved $15 yet. What do you do?",
+          : "Your friend offers you a rare trading card for $15 - but you have not saved $15 yet. What do you do?",
       });
       showBeat("friend");
     }
@@ -227,7 +233,7 @@ export function setupStage1(ctx: Ctx) {
         changeMoney(-CARD_PRICE);
         updateScore("smarts", 6); // you weighed it — that earns some smarts
         resolveFriend(
-          "Fun! You got the card. But that $15 is gone from your savings — that is the trade-off. Money you spend cannot also be saved.",
+          "Fun! You got the card. But that $15 is gone from your savings - that is the trade-off. Money you spend cannot also be saved.",
         );
       },
     });
@@ -239,7 +245,7 @@ export function setupStage1(ctx: Ctx) {
         updateScore("smarts", 8);
         updateScore("security", 8); // protecting your savings builds security
         resolveFriend(
-          "You passed. The card was cool, but keeping your savings means you are ready for what is next. That is opportunity cost — every yes is a no to something else.",
+          "You passed. The card was cool, but keeping your savings means you are ready for what is next. That is opportunity cost - every yes is a no to something else.",
         );
       },
     });
@@ -270,6 +276,7 @@ export function setupStage1(ctx: Ctx) {
       updateScore("growth", growthGain);
       updateScore("security", securityGain);
       updateScore("smarts", smartsGain);
+      setDeltaChips(doc, { growth: growthGain, security: securityGain, smarts: smartsGain });
 
       resultSpend?.setProperties({ text: "Over three weeks you spent $" + cumSpent + " on things you wanted." });
       resultPiggy?.setProperties({ text: "You have $" + cumPiggy + " saved at home." });
@@ -279,7 +286,7 @@ export function setupStage1(ctx: Ctx) {
 
       let take = "Spending is fun! Saving a bit more would help your money grow.";
       if (saved >= 20) take = "Nice saving! Money in the bank grows all on its own.";
-      if (cumBank >= 10 && cumSpent >= 10) take = "Great balance — you spent a little, saved a little, and grew a little.";
+      if (cumBank >= 10 && cumSpent >= 10) take = "Great balance - you spent a little, saved a little, and grew a little.";
       resultTakeaway?.setProperties({ text: take });
 
       showBeat("outcome");

@@ -13,6 +13,11 @@
   .result-line { font-size: 3.6; color: #1F3A5F; text-align: center; margin-top: 2; }
   .word-chip { font-size: 3.4; font-weight: bold; color: #ffffff; background-color: #a33b2a; text-align: center; margin-top: 3; padding-top: 1.4; padding-bottom: 1.4; padding-left: 4; padding-right: 4; border-radius: 3; }
   .takeaway { font-size: 3.6; font-weight: bold; color: #2e6b2e; text-align: center; margin-top: 3; }
+  .delta-row { display: flex; flex-direction: row; justify-content: center; width: 124; margin-top: 3; }
+  .delta-chip { font-size: 3; font-weight: bold; color: #ffffff; text-align: center; margin-left: 1; margin-right: 1; padding-top: 1.2; padding-bottom: 1.2; padding-left: 3; padding-right: 3; border-radius: 3; }
+  .dc-growth { background-color: #5fae4a; }
+  .dc-security { background-color: #4a8fd6; }
+  .dc-smarts { background-color: #c8962a; }
   .action-button { display: flex; align-items: center; justify-content: center; margin-top: 4; padding-top: 3; padding-bottom: 3; padding-left: 8; padding-right: 8; background-color: #c8962a; border-radius: 4; cursor: pointer; }
   .action-label { font-size: 4.4; font-weight: bold; color: #1F3A5F; word-break: keep-all; }
 </style>
@@ -49,6 +54,12 @@
     <span class="eyebrow">HOW IT WENT</span>
     <span id="result-surprise" class="result-line">...</span>
     <span id="result-chip" class="word-chip">...</span>
+        <div class="delta-row">
+      <span id="delta-growth" class="delta-chip dc-growth">+0 Growth</span>
+      <span id="delta-security" class="delta-chip dc-security">+0 Security</span>
+      <span id="delta-smarts" class="delta-chip dc-smarts">+0 Smarts</span>
+    </div>
+
     <span id="result-takeaway" class="takeaway">...</span>
     <div id="continue-button" class="action-button">
       <span class="action-label">Continue</span>

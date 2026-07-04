@@ -7,7 +7,8 @@
 // localStorage for the teacher-facing side of the course.
 // ============================================================================
 
-import { Interactable, PanelUI } from "@iwsdk/core";
+import { Interactable, PanelUI, Vector3 } from "@iwsdk/core";
+import { burstConfetti } from "../confetti";
 import {
   choices,
   getChosenCharacter,
@@ -128,7 +129,7 @@ export function setupReport(ctx: Ctx): { showReport: () => void } {
       fill?.setProperties({ width: 0 });
       return;
     }
-    line?.setProperties({ text: rec.title + ": $" + rec.startMoney + " → $" + rec.endMoney });
+    line?.setProperties({ text: rec.title + ": $" + rec.startMoney + " to $" + rec.endMoney });
     choice?.setProperties({ text: rec.keyChoice });
     const w = maxEnd > 0 ? Math.round((rec.endMoney / maxEnd) * TIMELINE_TRACK_WIDTH) : 0;
     fill?.setProperties({ width: w });
@@ -165,6 +166,12 @@ export function setupReport(ctx: Ctx): { showReport: () => void } {
     showPhase("report");
     panels.presentPanel(panel); // place it comfortably in front, wherever you stand
     setObjective("You did it! Here is your money report.");
+
+    // A little celebration: confetti bursts above the report card.
+    const burstPos = new Vector3();
+    panel.object3D?.getWorldPosition(burstPos);
+    burstPos.y += 0.8;
+    burstConfetti(world, burstPos);
   }
 
   return { showReport };
